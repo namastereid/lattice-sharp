@@ -16,24 +16,17 @@ namespace lattice_sharp
 
         public Lattice()
         {
-            _graphics = new GraphicsDeviceManager(this);
-            _graphics.HardwareModeSwitch = false;
+            _graphics = new GraphicsDeviceManager(this) {HardwareModeSwitch = false};
             Window.AllowUserResizing = true;
             Content.RootDirectory = "Content";
-        }
-
-        protected override void Initialize()
-        {
-            base.Initialize();
         }
 
         protected override void LoadContent()
         {
             // Create a new SpriteBatch, which can be used to draw textures.
             _spriteBatch = new SpriteBatch(GraphicsDevice);
-            _texture = CreateTexture(_graphics.GraphicsDevice, 32, 32, pixel => Color.Black);
-
-            // TODO: use this.Content to load your game content here
+            
+            _texture = CreateTexture(_graphics.GraphicsDevice, 30, 30);
         }
 
         protected override void Update(GameTime gameTime)
@@ -58,34 +51,38 @@ namespace lattice_sharp
                 _toggleFullscreen = false;
             }
 
-            // TODO: Add your update logic here
-
             base.Update(gameTime);
         }
 
         protected override void Draw(GameTime gameTime)
         {
             _graphics.GraphicsDevice.Clear(Color.CornflowerBlue);
-            _spriteBatch.Begin();
-            _spriteBatch.Draw(_texture, Vector2.Zero, Color.Blue);
+            _spriteBatch.Begin(SpriteSortMode.Deferred, null, SamplerState.PointClamp);
+            _spriteBatch.Draw(_texture, new Rectangle(0, 0, _graphics.GraphicsDevice.Viewport.Width, _graphics.GraphicsDevice.Viewport.Height), Color.White);
             _spriteBatch.End();
-
-            // TODO: Add your drawing code here
 
             base.Draw(gameTime);
         }
 
-        private static Texture2D CreateTexture(GraphicsDevice device, int width, int height, Func<int, Color> paint)
+        private static Texture2D CreateTexture(GraphicsDevice device, int width, int height)
         {
             //initialize a texture
             var texture = new Texture2D(device, width, height);
 
             //the array holds the color for each pixel in the texture
             var data = new Color[width * height];
+            var black = true;
+            var row = 0;
             for (var pixel = 0; pixel < data.Length; pixel++)
             {
-                //the function applies the color according to the specified pixel
-                data[pixel] = paint(pixel);
+                var factor = pixel / height;
+                if (factor > row) // new row
+                {
+                    row = factor;
+                    black = factor % 2 == 0;
+                }
+                data[pixel] = black ? Color.Black : Color.White;
+                black = !black;
             }
 
             //set the color
